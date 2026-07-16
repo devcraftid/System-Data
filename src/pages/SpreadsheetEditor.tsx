@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Download, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
+import * as XLSX from 'xlsx'
 
 // Univer CSS
 import '@univerjs/design/lib/index.css'
@@ -31,6 +32,7 @@ export default function SpreadsheetEditor() {
   const [sheetName, setSheetName] = useState('Loading...')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [exporting, setExporting] = useState(false)
   
   const containerRef = useRef<HTMLDivElement>(null)
   const univerRef = useRef<Univer | null>(null)
@@ -148,6 +150,102 @@ export default function SpreadsheetEditor() {
     }
   }
 
+  const generateExcelBlob = (): Blob | null => {
+    if (!univerAPIRef.current) return null;
+    try {
+      const activeWorkbook = univerAPIRef.current.getActiveWorkbook()
+      if (!activeWorkbook) return null
+      
+      const snapshot = activeWorkbook.getSnapshot()
+      const wb = XLSX.utils.book_new()
+      
+      Object.keys(snapshot.sheets).forEach(sheetId => {
+        const sheet = snapshot.sheets[sheetId]
+        const cellData = sheet.cellData || {}
+        
+        let maxRow = 0
+        let maxCol = 0
+        
+        Object.keys(cellData).forEach(rowStr => {
+          const r = parseInt(rowStr)
+          if (r > maxRow) maxRow = r
+          const rowData = cellData[rowStr]
+          Object.keys(rowData).forEach(colStr => {
+            const c = parseInt(colStr)
+            if (c > maxCol) maxCol = c
+          })
+        })
+        
+        const aoa: any[][] = Array.from({ length: maxRow + 1 }, () => Array(maxCol + 1).fill(''))
+        
+        Object.keys(cellData).forEach(rowStr => {
+          const r = parseInt(rowStr)
+          const rowData = cellData[rowStr]
+          Object.keys(rowData).forEach(colStr => {
+            const c = parseInt(colStr)
+            const cell = rowData[colStr]
+            aoa[r][c] = cell?.v ?? cell?.m ?? ''
+          })
+        })
+        
+        const ws = XLSX.utils.aoa_to_sheet(aoa)
+        XLSX.utils.book_append_sheet(wb, ws, sheet.name || 'Sheet')
+      })
+      
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+      return new Blob([wbout], { type: "application/octet-stream" })
+    } catch(e) {
+      console.error(e)
+      return null
+    }
+  }
+
+  const handleDownloadExcel = () => {
+    const blob = generateExcelBlob()
+    if (!blob) return alert('Gagal membuat file excel')
+    
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${sheetName || 'export'}.xlsx`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleSendWA = async () => {
+    const blob = generateExcelBlob()
+    if (!blob) return alert('Gagal membuat file excel')
+      
+    try {
+      setExporting(true)
+      const fileName = `${spreadsheetId}_${Date.now()}.xlsx`
+      
+      const { data, error } = await supabase.storage
+        .from('exports')
+        .upload(fileName, blob, {
+          contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        })
+        
+      if (error) throw error
+      
+      const { data: urlData } = supabase.storage
+        .from('exports')
+        .getPublicUrl(fileName)
+        
+      const publicUrl = urlData.publicUrl
+      
+      const text = encodeURIComponent(`Berikut adalah file Excel untuk dokumen "${sheetName}":\n\n${publicUrl}`)
+      window.open(`https://wa.me/?text=${text}`, '_blank')
+    } catch (e: any) {
+      console.error(e)
+      alert('Gagal mengirim ke WA: ' + e.message)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   // Intercept Ctrl+S for saving
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -173,33 +271,55 @@ export default function SpreadsheetEditor() {
 
   return (
     <div className="flex flex-col h-screen w-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative">
-      {/* Custom Header overlay */}
-      <div className="absolute top-2 left-2 z-50 flex items-center gap-3">
+      {/* Custom Header overlay - Mobile Responsive */}
+      <div className="absolute top-2 left-2 z-[999] flex flex-wrap items-center gap-2 max-w-[50%]">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={() => navigate(-1)}
-          className="bg-white hover:bg-slate-100 shadow-sm border-slate-200"
+          className="bg-white hover:bg-slate-100 shadow-sm border-slate-200 text-xs md:text-sm h-8 md:h-9 px-2 md:px-3"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Folder
+          <ArrowLeft className="w-3 h-3 md:w-4 md:h-4 md:mr-2" /> 
+          <span className="hidden md:inline">Back</span>
         </Button>
-        <span className="font-semibold text-sm bg-white/80 px-2 py-1 rounded shadow-sm">{sheetName}</span>
+        <span className="font-semibold text-xs md:text-sm bg-white/80 px-2 py-1 rounded shadow-sm truncate max-w-[100px] md:max-w-xs">
+          {sheetName}
+        </span>
       </div>
       
-      <div className="absolute top-2 right-2 z-50">
+      <div className="absolute top-2 right-2 z-[999] flex flex-wrap justify-end gap-1 md:gap-2 max-w-[50%]">
+        <Button 
+          onClick={handleDownloadExcel} 
+          variant="outline"
+          size="sm"
+          className="bg-green-600 hover:bg-green-700 text-white shadow-sm border-none text-xs md:text-sm h-8 md:h-9 px-2 md:px-3"
+        >
+          <Download className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+          <span className="hidden md:inline">Excel</span>
+        </Button>
+        <Button 
+          onClick={handleSendWA} 
+          disabled={exporting}
+          variant="outline"
+          size="sm"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm border-none text-xs md:text-sm h-8 md:h-9 px-2 md:px-3"
+        >
+          <Share2 className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+          <span className="hidden md:inline">{exporting ? '...' : 'WA'}</span>
+        </Button>
         <Button 
           onClick={handleSave} 
           disabled={saving || loading}
           size="sm"
-          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm text-xs md:text-sm h-8 md:h-9 px-2 md:px-3"
         >
-          <Save className="w-4 h-4 mr-2" />
-          {saving ? 'Saving...' : 'Save (Ctrl+S)'}
+          <Save className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+          <span className="hidden md:inline">{saving ? '...' : 'Save'}</span>
         </Button>
       </div>
 
       {/* Univer Container */}
-      <div ref={containerRef} className="w-full h-full m-0 p-0 absolute top-0 left-0"></div>
+      <div ref={containerRef} className="w-full h-full m-0 p-0 absolute top-0 left-0 pt-12 md:pt-0"></div>
     </div>
   )
 }
