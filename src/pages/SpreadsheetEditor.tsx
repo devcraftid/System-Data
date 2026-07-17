@@ -10,6 +10,13 @@ import '@univerjs/design/lib/index.css'
 import '@univerjs/ui/lib/index.css'
 import '@univerjs/docs-ui/lib/index.css'
 import '@univerjs/sheets-ui/lib/index.css'
+import '@univerjs/sheets-formula-ui/lib/index.css'
+import '@univerjs/sheets-numfmt-ui/lib/index.css'
+import '@univerjs/find-replace/lib/index.css'
+import '@univerjs/sheets-crosshair-highlight/lib/index.css'
+import '@univerjs/sheets-filter-ui/lib/index.css'
+import '@univerjs/sheets-note-ui/lib/index.css'
+import '@univerjs/sheets-sort-ui/lib/index.css'
 
 // Univer Plugins
 import { Univer, UniverInstanceType, LocaleType, IUniverInstanceService } from '@univerjs/core'
@@ -28,6 +35,17 @@ import { UniverSheetsNumfmtPlugin } from '@univerjs/sheets-numfmt'
 import { UniverSheetsNumfmtUIPlugin } from '@univerjs/sheets-numfmt-ui'
 import { UniverSheetsUIPlugin } from '@univerjs/sheets-ui'
 import { UniverUIPlugin } from '@univerjs/ui'
+import { UniverSheetsConditionalFormattingPlugin } from '@univerjs/sheets-conditional-formatting'
+import { UniverSheetsFindReplacePlugin } from '@univerjs/sheets-find-replace'
+import { UniverSheetsFilterPlugin } from '@univerjs/sheets-filter'
+import { UniverSheetsFilterUIPlugin } from '@univerjs/sheets-filter-ui'
+import { UniverSheetsSortPlugin } from '@univerjs/sheets-sort'
+import { UniverSheetsSortUIPlugin } from '@univerjs/sheets-sort-ui'
+import { UniverSheetsHyperLinkPlugin } from '@univerjs/sheets-hyper-link'
+import { UniverSheetsCrosshairHighlightPlugin } from '@univerjs/sheets-crosshair-highlight'
+import { UniverSheetsNotePlugin } from '@univerjs/sheets-note'
+import { UniverSheetsNoteUIPlugin } from '@univerjs/sheets-note-ui'
+import { FUniver } from '@univerjs/facade'
 
 export default function SpreadsheetEditor() {
   const { spreadsheetId } = useParams()
@@ -122,6 +140,16 @@ export default function SpreadsheetEditor() {
     univer.registerPlugin(UniverSheetsFormulaUIPlugin)
     univer.registerPlugin(UniverSheetsNumfmtPlugin)
     univer.registerPlugin(UniverSheetsNumfmtUIPlugin)
+    univer.registerPlugin(UniverSheetsConditionalFormattingPlugin)
+    univer.registerPlugin(UniverSheetsFindReplacePlugin)
+    univer.registerPlugin(UniverSheetsFilterPlugin)
+    univer.registerPlugin(UniverSheetsFilterUIPlugin)
+    univer.registerPlugin(UniverSheetsSortPlugin)
+    univer.registerPlugin(UniverSheetsSortUIPlugin)
+    univer.registerPlugin(UniverSheetsHyperLinkPlugin)
+    univer.registerPlugin(UniverSheetsCrosshairHighlightPlugin)
+    univer.registerPlugin(UniverSheetsNotePlugin)
+    univer.registerPlugin(UniverSheetsNoteUIPlugin)
 
     // Create the workbook
     const initialData = savedData || {
