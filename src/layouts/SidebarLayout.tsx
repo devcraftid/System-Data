@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -8,7 +8,9 @@ import {
   Activity, 
   Settings,
   TableProperties,
-  LogOut
+  LogOut,
+  Menu,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -26,19 +28,44 @@ const menuItems = [
 export function SidebarLayout() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/login');
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50 font-sans overflow-hidden">
+      
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden" 
+          onClick={closeMobileMenu}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col transition-all duration-300">
-        <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800">
-          <TableProperties className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mr-3" />
-          <span className="font-semibold text-lg tracking-tight">CloudSheet</span>
+      <aside 
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col transition-transform duration-300 md:translate-x-0 md:static md:flex",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center">
+            <TableProperties className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mr-3" />
+            <span className="font-semibold text-lg tracking-tight">CloudSheet</span>
+          </div>
+          {/* Close button for mobile */}
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={closeMobileMenu}>
+            <X className="w-5 h-5" />
+          </Button>
         </div>
         
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
@@ -46,6 +73,7 @@ export function SidebarLayout() {
             <NavLink
               key={item.name}
               to={item.path}
+              onClick={closeMobileMenu}
               className={({ isActive }) => cn(
                 "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
                 isActive 
@@ -55,7 +83,6 @@ export function SidebarLayout() {
             >
               <item.icon className={cn(
                 "w-5 h-5 mr-3 flex-shrink-0 transition-colors duration-200",
-                // Active state icon color is handled by parent text color
               )} />
               {item.name}
             </NavLink>
@@ -82,17 +109,22 @@ export function SidebarLayout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md flex items-center px-8 justify-between sticky top-0 z-10">
+        <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md flex items-center px-4 md:px-8 justify-between sticky top-0 z-10 shrink-0">
           <div className="flex items-center">
-            {/* Contextual header title could go here */}
+            {/* Hamburger menu for mobile */}
+            <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu className="w-5 h-5" />
+            </Button>
           </div>
           <div className="flex items-center gap-4">
-            {/* Additional header actions */}
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" title="Online" />
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" title="Online" />
+              <span className="text-xs font-medium text-slate-500 hidden md:inline">System Online</span>
+            </div>
           </div>
         </header>
         
-        <div className="flex-1 overflow-auto p-8 bg-slate-50 dark:bg-slate-950">
+        <div className="flex-1 overflow-auto p-4 md:p-8 bg-slate-50 dark:bg-slate-950">
           <div className="max-w-7xl mx-auto w-full h-full">
             <Outlet />
           </div>
