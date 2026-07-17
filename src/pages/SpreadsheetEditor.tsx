@@ -45,7 +45,7 @@ import { UniverSheetsHyperLinkPlugin } from '@univerjs/sheets-hyper-link'
 import { UniverSheetsCrosshairHighlightPlugin } from '@univerjs/sheets-crosshair-highlight'
 import { UniverSheetsNotePlugin } from '@univerjs/sheets-note'
 import { UniverSheetsNoteUIPlugin } from '@univerjs/sheets-note-ui'
-import { FUniver } from '@univerjs/facade'
+
 
 export default function SpreadsheetEditor() {
   const { spreadsheetId } = useParams()
