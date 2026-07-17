@@ -279,14 +279,6 @@ export default function SpreadsheetEditor() {
     }
   }, [saving])
 
-  // Cleanup Univer on unmount
-  useEffect(() => {
-    return () => {
-      if (univerRef.current) {
-        univerRef.current.dispose()
-      }
-    }
-  }, [])
 
   return (
     <div className="flex flex-col h-screen w-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative">
