@@ -11,6 +11,7 @@ export default function Dashboard() {
     spreadsheets: 0,
     users: 0
   })
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
 
   useEffect(() => {
     if (user) {
@@ -29,6 +30,16 @@ export default function Dashboard() {
         spreadsheets: sheetsCount || 0,
         users: usersCount || 0
       })
+
+      // Fetch recent logs
+      const { data: logs } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5)
+      
+      if (logs) setRecentActivity(logs)
+
     } catch (e) {
       console.error("Error fetching stats", e)
     }
@@ -71,11 +82,34 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center items-center h-[300px] text-slate-400 bg-slate-50/50 dark:bg-slate-900/50 rounded-md mx-6 mb-6">
-            <div className="flex flex-col items-center">
-              <Activity className="h-10 w-10 mb-3 opacity-20" />
-              <p>No activity yet.</p>
-            </div>
+          <CardContent className="h-[300px] overflow-auto mb-6 px-6">
+            {recentActivity.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-400 bg-slate-50/50 dark:bg-slate-900/50 rounded-md">
+                <Activity className="h-10 w-10 mb-3 opacity-20" />
+                <p>No activity yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivity.map((log) => (
+                  <div key={log.id} className="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <Activity className="w-4 h-4 text-slate-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {log.action} <span className="font-semibold">{log.target_table}</span>
+                        </p>
+                        <p className="text-xs text-slate-500">{log.target_id.substring(0,8)}...</p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-slate-400">
+                      {new Date(log.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card className="col-span-3 shadow-sm border-slate-200/60 dark:border-slate-800/60">

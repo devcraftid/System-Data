@@ -29,6 +29,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { logAction } from '@/lib/audit'
 
 export default function Folder() {
   const { user } = useAuth()
@@ -94,12 +95,14 @@ export default function Folder() {
         await supabase.from('workspace_members').insert({ workspace_id: workspaceId, user_id: user?.id, role: 'Owner' })
       }
 
-      const { error } = await supabase.from('folders').insert({
+      const { data: folderData, error } = await supabase.from('folders').insert({
         name: newFolderName,
         workspace_id: workspaceId,
         created_by: user?.id
-      })
+      }).select().single()
       if (error) throw error
+
+      await logAction(user?.id, 'CREATE', 'folders', folderData.id)
 
       setNewFolderName('')
       setFolderDialogOpen(false)
@@ -115,6 +118,8 @@ export default function Folder() {
     try {
       const { error } = await supabase.from('folders').update({ is_deleted: true }).eq('id', id)
       if (error) throw error
+      
+      await logAction(user?.id, 'DELETE', 'folders', id)
       fetchItems()
     } catch (e: any) {
       console.error(e)
@@ -128,6 +133,8 @@ export default function Folder() {
     try {
       const { error } = await supabase.from('folders').update({ name: editName }).eq('id', activeItem.id)
       if (error) throw error
+      
+      await logAction(user?.id, 'EDIT', 'folders', activeItem.id)
       setRenameDialogOpen(false)
       fetchItems()
     } catch (e: any) {

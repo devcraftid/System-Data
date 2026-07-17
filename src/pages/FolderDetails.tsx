@@ -29,6 +29,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/context/AuthContext'
+import { logAction } from '@/lib/audit'
 
 export default function FolderDetails() {
   const { folderId } = useParams()
@@ -91,12 +92,14 @@ export default function FolderDetails() {
     if (!newSheetName.trim()) return
 
     try {
-      const { error } = await supabase.from('spreadsheets').insert({
+      const { data: sheetData, error } = await supabase.from('spreadsheets').insert({
         name: newSheetName,
         folder_id: folderId,
         created_by: user?.id
-      })
+      }).select().single()
       if (error) throw error
+      
+      await logAction(user?.id, 'CREATE', 'spreadsheets', sheetData.id)
 
       setNewSheetName('')
       setSheetDialogOpen(false)
@@ -112,6 +115,8 @@ export default function FolderDetails() {
     try {
       const { error } = await supabase.from('spreadsheets').update({ is_deleted: true }).eq('id', id)
       if (error) throw error
+      
+      await logAction(user?.id, 'DELETE', 'spreadsheets', id)
       fetchFolderDetails()
     } catch (e: any) {
       console.error(e)
@@ -125,6 +130,8 @@ export default function FolderDetails() {
     try {
       const { error } = await supabase.from('spreadsheets').update({ name: editName }).eq('id', activeItem.id)
       if (error) throw error
+      
+      await logAction(user?.id, 'EDIT', 'spreadsheets', activeItem.id)
       setRenameDialogOpen(false)
       fetchFolderDetails()
     } catch (e: any) {
