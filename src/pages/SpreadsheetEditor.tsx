@@ -71,7 +71,6 @@ export default function SpreadsheetEditor() {
     }
 
     const univer = new Univer({
-      theme: defaultTheme,
       locale: LocaleType.EN_US,
     })
     

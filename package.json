@@ -22,7 +22,7 @@
     "@univerjs/engine-formula": "^0.25.1",
     "@univerjs/engine-render": "^0.25.1",
     "@univerjs/facade": "^0.5.5",
-    "xlsx": "^0.18.5",
+    "@univerjs/icons": "^1.21.0",
     "@univerjs/sheets": "^0.25.1",
     "@univerjs/sheets-formula": "^0.25.1",
     "@univerjs/sheets-numfmt": "^0.25.1",
@@ -37,6 +37,7 @@
     "react-hook-form": "^7.81.0",
     "react-router-dom": "^7.18.1",
     "tailwind-merge": "^3.6.0",
+    "xlsx": "^0.18.5",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
