@@ -40,38 +40,43 @@ export default function SpreadsheetEditor() {
   const univerRef = useRef<any>(null)
 
   useEffect(() => {
-    fetchMetadata()
+    let isMounted = true
+
+    const loadMetadata = async () => {
+      setLoading(true)
+      try {
+        const { data, error } = await supabase
+          .from('spreadsheets')
+          .select('name, data')
+          .eq('id', spreadsheetId)
+          .single()
+        
+        if (error) throw error
+        if (!isMounted) return
+
+        setSheetName(data.name)
+        initUniver(data.data)
+      } catch (e) {
+        console.error(e)
+        if (isMounted) setSheetName('Unknown Spreadsheet')
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+
+    loadMetadata()
 
     return () => {
+      isMounted = false
       if (univerRef.current) {
         const oldUniver = univerRef.current
         setTimeout(() => {
-          oldUniver.dispose()
+          if (oldUniver) oldUniver.dispose()
         }, 0)
         univerRef.current = null
       }
     }
   }, [spreadsheetId])
-
-  const fetchMetadata = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('spreadsheets')
-        .select('name, data')
-        .eq('id', spreadsheetId)
-        .single()
-      
-      if (error) throw error
-      setSheetName(data.name)
-      
-      initUniver(data.data)
-    } catch (e) {
-      console.error(e)
-      setSheetName('Unknown Spreadsheet')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const initUniver = (savedData: any) => {
     if (!containerRef.current) return
