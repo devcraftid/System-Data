@@ -22,6 +22,7 @@
     "@univerjs/engine-formula": "^0.25.1",
     "@univerjs/engine-render": "^0.25.1",
     "@univerjs/icons": "^1.21.0",
+    "@univerjs/rpc": "^0.25.1",
     "@univerjs/sheets": "^0.25.1",
     "@univerjs/sheets-conditional-formatting": "^0.25.1",
     "@univerjs/sheets-crosshair-highlight": "^0.25.1",

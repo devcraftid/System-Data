@@ -44,6 +44,7 @@ import { UniverSheetsSortUIPlugin } from '@univerjs/sheets-sort-ui'
 import { UniverSheetsHyperLinkPlugin } from '@univerjs/sheets-hyper-link'
 import { UniverSheetsCrosshairHighlightPlugin } from '@univerjs/sheets-crosshair-highlight'
 import { UniverSheetsNotePlugin } from '@univerjs/sheets-note'
+import { UniverRPCMainThreadPlugin } from '@univerjs/rpc'
 import { UniverSheetsNoteUIPlugin } from '@univerjs/sheets-note-ui'
 
 
@@ -116,10 +117,12 @@ export default function SpreadsheetEditor() {
     })
     
     univerRef.current = univer
+    // RPC Web Worker for high-performance formula engine
+    const worker = new Worker(new URL('../worker.ts', import.meta.url), { type: 'module' })
+    univer.registerPlugin(UniverRPCMainThreadPlugin, { workerURL: worker })
 
     // Core Engines
     univer.registerPlugin(UniverRenderEnginePlugin)
-    univer.registerPlugin(UniverFormulaEnginePlugin)
     
     // UI Plugin
     univer.registerPlugin(UniverUIPlugin, {
