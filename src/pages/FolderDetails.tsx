@@ -42,6 +42,11 @@ export default function FolderDetails() {
   
   const [newSheetName, setNewSheetName] = useState('')
   const [isSheetDialogOpen, setSheetDialogOpen] = useState(false)
+  
+  // State for renaming
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [activeItem, setActiveItem] = useState<any>(null)
+  const [editName, setEditName] = useState('')
 
   useEffect(() => {
     if (user && folderId) {
@@ -100,6 +105,38 @@ export default function FolderDetails() {
       console.error('Error creating spreadsheet:', error)
       alert(`Failed to create spreadsheet: ${error.message || 'Unknown error'}`)
     }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this spreadsheet?')) return
+    try {
+      const { error } = await supabase.from('spreadsheets').update({ is_deleted: true }).eq('id', id)
+      if (error) throw error
+      fetchFolderDetails()
+    } catch (e: any) {
+      console.error(e)
+      alert('Failed to delete spreadsheet: ' + e.message)
+    }
+  }
+
+  const handleRename = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editName.trim() || !activeItem) return
+    try {
+      const { error } = await supabase.from('spreadsheets').update({ name: editName }).eq('id', activeItem.id)
+      if (error) throw error
+      setRenameDialogOpen(false)
+      fetchFolderDetails()
+    } catch (e: any) {
+      console.error(e)
+      alert('Failed to rename spreadsheet: ' + e.message)
+    }
+  }
+
+  const openRenameDialog = (item: any) => {
+    setActiveItem(item)
+    setEditName(item.name)
+    setRenameDialogOpen(true)
   }
 
   const filteredSheets = spreadsheets.filter(item => item.name.toLowerCase().includes(search.toLowerCase()))
@@ -200,9 +237,9 @@ export default function FolderDetails() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuItem><Edit2 className="w-4 h-4 mr-2" /> Rename</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openRenameDialog(item)}><Edit2 className="w-4 h-4 mr-2" /> Rename</DropdownMenuItem>
                         <DropdownMenuItem><Download className="w-4 h-4 mr-2" /> Download</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600 focus:bg-red-50 dark:focus:bg-red-950"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(item.id)} className="text-red-600 focus:bg-red-50 dark:focus:bg-red-950"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -212,6 +249,33 @@ export default function FolderDetails() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Rename Dialog */}
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent>
+          <form onSubmit={handleRename}>
+            <DialogHeader>
+              <DialogTitle>Rename Spreadsheet</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="editName" className="text-right">Name</Label>
+                <Input 
+                  id="editName" 
+                  className="col-span-3"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild><Button variant="outline" type="button">Cancel</Button></DialogClose>
+              <Button type="submit">Save Changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
