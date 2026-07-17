@@ -13,6 +13,10 @@ import '@univerjs/sheets-ui/lib/index.css'
 
 // Univer Plugins
 import { Univer, UniverInstanceType, LocaleType, IUniverInstanceService } from '@univerjs/core'
+import DesignEnUS from '@univerjs/design/locale/en-US'
+import UIEnUS from '@univerjs/ui/locale/en-US'
+import DocsUIEnUS from '@univerjs/docs-ui/locale/en-US'
+import SheetsUIEnUS from '@univerjs/sheets-ui/locale/en-US'
 import { UniverDocsPlugin } from '@univerjs/docs'
 import { UniverDocsUIPlugin } from '@univerjs/docs-ui'
 import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula'
@@ -69,6 +73,14 @@ export default function SpreadsheetEditor() {
 
     const univer = new Univer({
       locale: LocaleType.EN_US,
+      locales: {
+        [LocaleType.EN_US]: {
+          ...DesignEnUS,
+          ...UIEnUS,
+          ...DocsUIEnUS,
+          ...SheetsUIEnUS,
+        }
+      }
     })
     
     univerRef.current = univer
