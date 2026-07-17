@@ -12,7 +12,7 @@ import '@univerjs/docs-ui/lib/index.css'
 import '@univerjs/sheets-ui/lib/index.css'
 
 // Univer Plugins
-import { Univer, UniverInstanceType, LocaleType } from '@univerjs/core'
+import { Univer, UniverInstanceType, LocaleType, IUniverInstanceService } from '@univerjs/core'
 import { UniverDocsPlugin } from '@univerjs/docs'
 import { UniverDocsUIPlugin } from '@univerjs/docs-ui'
 import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula'
@@ -22,7 +22,6 @@ import { UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula'
 import { UniverSheetsNumfmtPlugin } from '@univerjs/sheets-numfmt'
 import { UniverSheetsUIPlugin } from '@univerjs/sheets-ui'
 import { UniverUIPlugin } from '@univerjs/ui'
-import { FUniver } from '@univerjs/facade'
 
 export default function SpreadsheetEditor() {
   const { spreadsheetId } = useParams()
@@ -34,8 +33,7 @@ export default function SpreadsheetEditor() {
   const [exporting, setExporting] = useState(false)
   
   const containerRef = useRef<HTMLDivElement>(null)
-  const univerRef = useRef<Univer | null>(null)
-  const univerAPIRef = useRef<FUniver | null>(null)
+  const univerRef = useRef<any>(null)
 
   useEffect(() => {
     fetchMetadata()
@@ -115,18 +113,17 @@ export default function SpreadsheetEditor() {
     
     univer.createUnit(UniverInstanceType.UNIVER_SHEET, initialData)
     
-    // Create Facade API for easy access
-    univerAPIRef.current = FUniver.newAPI(univer)
+    // (Facade removed)
   }
 
   const handleSave = async () => {
-    if (!univerAPIRef.current || saving) return;
+    if (!univerRef.current || saving) return;
     
     try {
       setSaving(true)
       
       // Get active workbook snapshot
-      const activeWorkbook = univerAPIRef.current.getActiveWorkbook()
+      const activeWorkbook = univerRef.current.__getInjector().get(IUniverInstanceService).getCurrentUnitOfType(UniverInstanceType.UNIVER_SHEET)
       if (!activeWorkbook) throw new Error("No active workbook")
         
       const allData = activeWorkbook.getSnapshot()
@@ -149,9 +146,9 @@ export default function SpreadsheetEditor() {
   }
 
   const generateExcelBlob = (): Blob | null => {
-    if (!univerAPIRef.current) return null;
+    if (!univerRef.current) return null;
     try {
-      const activeWorkbook = univerAPIRef.current.getActiveWorkbook()
+      const activeWorkbook = univerRef.current.__getInjector().get(IUniverInstanceService).getCurrentUnitOfType(UniverInstanceType.UNIVER_SHEET)
       if (!activeWorkbook) return null
       
       const snapshot = activeWorkbook.getSnapshot()
