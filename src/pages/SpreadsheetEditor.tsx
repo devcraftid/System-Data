@@ -13,7 +13,6 @@ import '@univerjs/sheets-ui/lib/index.css'
 
 // Univer Plugins
 import { Univer, UniverInstanceType, LocaleType } from '@univerjs/core'
-import { defaultTheme } from '@univerjs/design'
 import { UniverDocsPlugin } from '@univerjs/docs'
 import { UniverDocsUIPlugin } from '@univerjs/docs-ui'
 import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula'
