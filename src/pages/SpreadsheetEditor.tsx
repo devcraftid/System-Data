@@ -41,6 +41,16 @@ export default function SpreadsheetEditor() {
 
   useEffect(() => {
     fetchMetadata()
+
+    return () => {
+      if (univerRef.current) {
+        const oldUniver = univerRef.current
+        setTimeout(() => {
+          oldUniver.dispose()
+        }, 0)
+        univerRef.current = null
+      }
+    }
   }, [spreadsheetId])
 
   const fetchMetadata = async () => {
@@ -66,10 +76,7 @@ export default function SpreadsheetEditor() {
   const initUniver = (savedData: any) => {
     if (!containerRef.current) return
     
-    // Destroy previous instance if exists
-    if (univerRef.current) {
-      univerRef.current.dispose()
-    }
+    // Previous instance disposal is handled by useEffect cleanup
 
     const univer = new Univer({
       locale: LocaleType.EN_US,
