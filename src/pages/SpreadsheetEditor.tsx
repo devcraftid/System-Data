@@ -23,7 +23,9 @@ import { UniverFormulaEnginePlugin } from '@univerjs/engine-formula'
 import { UniverRenderEnginePlugin } from '@univerjs/engine-render'
 import { UniverSheetsPlugin } from '@univerjs/sheets'
 import { UniverSheetsFormulaPlugin } from '@univerjs/sheets-formula'
+import { UniverSheetsFormulaUIPlugin } from '@univerjs/sheets-formula-ui'
 import { UniverSheetsNumfmtPlugin } from '@univerjs/sheets-numfmt'
+import { UniverSheetsNumfmtUIPlugin } from '@univerjs/sheets-numfmt-ui'
 import { UniverSheetsUIPlugin } from '@univerjs/sheets-ui'
 import { UniverUIPlugin } from '@univerjs/ui'
 
@@ -117,7 +119,9 @@ export default function SpreadsheetEditor() {
     univer.registerPlugin(UniverSheetsPlugin)
     univer.registerPlugin(UniverSheetsUIPlugin)
     univer.registerPlugin(UniverSheetsFormulaPlugin)
+    univer.registerPlugin(UniverSheetsFormulaUIPlugin)
     univer.registerPlugin(UniverSheetsNumfmtPlugin)
+    univer.registerPlugin(UniverSheetsNumfmtUIPlugin)
 
     // Create the workbook
     const initialData = savedData || {
